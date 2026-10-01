@@ -18,8 +18,8 @@ object TiltMapping {
     /** Tilt (degrees) that maps to a full ±1 command. */
     const val FULL_RANGE_DEG = 25f
 
-    const val SIGN_VX = -1f
-    const val SIGN_VY = -1f
+    const val SIGN_VX = 1f
+    const val SIGN_VY = 1f
 
     fun map(rollDeg: Double, pitchDeg: Double): Pair<Float, Float> {
         val vx = (SIGN_VX * rollDeg / FULL_RANGE_DEG).toFloat().coerceIn(-1f, 1f)
