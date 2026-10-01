@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="gRPC 模擬小車 — 感測裝置"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <com.example.grpcsim.SimView
+            android:id="@+id/sim_view"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/txt_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="未連線"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txt_last_collision"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="碰撞：—"
+            android:textColor="#c0392b" />
+
+        <TextView
+            android:id="@+id/txt_tilt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="傾角：roll 0° pitch 0° → 控制 (0.00, 0.00)"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txt_pos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="小車：—"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/txt_addr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="伺服器位址（點我修改）：—"
+            android:textSize="13sp"
+            android:textColor="#1565c0" />
+
+        <Button
+            android:id="@+id/btn_query"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="查詢模擬資訊（unary + deadline 2s）" />
+
+        <Button
+            android:id="@+id/btn_query_slow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="慢速查詢（示範 deadline 逾時）" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_reset"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="重置模擬" />
+
+            <Button
+                android:id="@+id/btn_reset_noconfirm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="重置（無確認）" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="60dp"
+            android:text="查詢/重置結果會顯示在這裡。"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

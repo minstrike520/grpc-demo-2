@@ -1,0 +1,16 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.kotlin/
+
+# misc
+*.log
+.DS_Store

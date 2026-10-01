@@ -1,0 +1,130 @@
+// gRPC demo for "robot training in mixed virtual/physical environments".
+//
+// Three RPCs, one per channel the spec asks for:
+//   - Control            : bidirectional stream (main channel).
+//                          Client -> server: control inputs (vx, vy).
+//                          Server -> client: collision notifications + periodic state snapshots.
+//   - GetStatus          : unary query for simulation info (with client deadline).
+//   - ResetSimulation    : unary query to reset the simulation (with client deadline).
+//
+// Error codes used by the server:
+//   FAILED_PRECONDITION  : ResetSimulation without confirm = true.
+//   DEADLINE_EXCEEDED    : automatically raised by gRPC when the client deadline passes.
+//   INVALID_ARGUMENT     : control values outside [-1, 1] are rejected on the main stream.
+//   UNAVAILABLE          : transport-level failure (no server / network lost).
+//
+// Metadata used:
+//   Client -> server: x-device-id, x-app-version
+//   Server -> client: x-server-version, x-server-uptime-ms
+
+syntax = "proto3";
+
+package sim;
+
+option java_package = "sim";
+option java_multiple_files = true;
+option java_outer_classname = "SimProto";
+
+
+service SimService {
+  // Main channel: bidirectional streaming control.
+  rpc Control(stream ControlMessage) returns (stream SimEvent) {}
+
+  // Unary channel: query simulation info.
+  rpc GetStatus(StatusRequest) returns (StatusReply) {}
+
+  // Unary channel: reset the simulation. Requires confirm = true.
+  rpc ResetSimulation(ResetRequest) returns (ResetReply) {}
+}
+
+// Control input sent by the sensing device (Android phone tilt).
+message ControlMessage {
+  // Normalized throttle along the platform x axis, clamped to [-1, 1].
+  float vx = 1;
+  // Normalized throttle along the platform y axis, clamped to [-1, 1].
+  float vy = 2;
+  // Monotonic sequence number (for ordering / debugging).
+  uint64 seq = 3;
+  // Client timestamp, ms since epoch.
+  int64 timestamp_ms = 4;
+}
+
+// Events pushed from server to the sensing device on the main channel.
+message SimEvent {
+  oneof event {
+    CollisionEvent collision = 1;
+    StateSnapshot state = 2;
+  }
+}
+
+// Emitted when the car hits a wall or an obstacle.
+message CollisionEvent {
+  // Impact force normalized to [0, 1]; 1 = full-speed impact.
+  // The phone maps this to vibration strength / duration.
+  float force = 1;
+  // What was hit: "wall" or an obstacle id (e.g. "obs-0").
+  string what = 2;
+  // Server time in ms since epoch.
+  int64 timestamp_ms = 3;
+}
+
+// Periodic snapshot of the whole simulation so the phone can render it.
+message StateSnapshot {
+  // Car position in meters, origin at the bottom-left corner of the platform.
+  double x = 1;
+  double y = 2;
+  double vx = 3;
+  double vy = 4;
+  // Platform dimensions in meters.
+  double platform_width = 5;
+  double platform_height = 6;
+  // Obstacles as circles.
+  repeated Obstacle obstacles = 7;
+  // Car radius in meters (for rendering).
+  double car_radius = 8;
+  // Control input the server is currently applying.
+  // Zeroed automatically when the control stream disconnects.
+  float control_vx = 9;
+  float control_vy = 10;
+}
+
+message Obstacle {
+  string id = 1;
+  double x = 2;
+  double y = 3;
+  double radius = 4;
+}
+
+message StatusRequest {
+  // Include the most recent N collision events in the reply (0 = none).
+  uint32 recent_events = 1;
+  // Artificial server-side delay in ms before answering.
+  // Use this to demonstrate what a client deadline does (DEADLINE_EXCEEDED).
+  int32 simulate_latency_ms = 2;
+}
+
+message StatusReply {
+  StateSnapshot state = 1;
+  // Server uptime in ms.
+  uint64 uptime_ms = 2;
+  // The x-device-id metadata value the server saw on this call.
+  string client_device_id = 3;
+  // Server version string.
+  string server_version = 4;
+  // Total collision events since the simulation started.
+  uint32 collision_count = 5;
+  // Whether a control stream is currently attached.
+  bool control_stream_active = 6;
+  // Recent collision events (up to recent_events).
+  repeated CollisionEvent recent_collisions = 7;
+}
+
+message ResetRequest {
+  // Must be true, otherwise the server answers FAILED_PRECONDITION.
+  bool confirm = 1;
+}
+
+message ResetReply {
+  bool ok = 1;
+  string message = 2;
+}
